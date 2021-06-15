@@ -1,23 +1,22 @@
-import Link from "next/link";
-import PokemonCard from "../components/dynamic/pokemonCard";
+import PokemonList from "../components/dynamic/pokemonList/";
+import { memoizedApi } from "../utils/cacheApi";
 
 const fetch = require("node-fetch");
 
 const Home = function ({ data }) {
     return (
         <>
-            {data.pokemon_entries.map((pokemon) => (
-                <PokemonCard data={pokemon} />
-            ))}
+            <PokemonList entries={data.pokemon_entries} />
         </>
     );
 };
 
 export default Home;
 export const getServerSideProps = async () => {
-    const data = fetch("https://pokeapi.co/api/v2/pokedex/kanto").then((resp) =>
-        resp.json()
-    );
-    const pokedexData = await data;
+    if (!memoizedApi.has(["pokemonKanto"])) {
+        memoizedApi("pokemonKanto", `https://pokeapi.co/api/v2/pokedex/kanto`);
+    }
+    const dataPokemon = memoizedApi.get(["pokemonKanto"]);
+    const pokedexData = await dataPokemon;
     return { props: { data: pokedexData } };
 };
